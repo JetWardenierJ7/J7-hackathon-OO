@@ -40,7 +40,6 @@ def create_app(db_url=None):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["JWT_SECRET_KEY"] = os.getenv("HACKETON_SECRET_KEY")
-    print(os.getenv("HACKETON_SECRET_KEY"), flush=True)
 
     db.init_app(app)
     migrate = Migrate(app, db)
