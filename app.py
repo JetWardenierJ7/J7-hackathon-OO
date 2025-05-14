@@ -36,6 +36,7 @@ def create_app(db_url=None):
         "pool_pre_ping": True,
     }
 
+    load_dotenv()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["JWT_SECRET_KEY"] = os.getenv("HACKETON_SECRET_KEY")
@@ -45,7 +46,6 @@ def create_app(db_url=None):
     migrate = Migrate(app, db)
     api = Api(app)
     CORS(app)
-    load_dotenv()
 
     jwt = JWTManager(app)
 
