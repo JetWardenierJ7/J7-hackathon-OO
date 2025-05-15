@@ -55,3 +55,20 @@ class UserCreatedSchema(Schema):
     """The schema used for creating a User"""
 
     user_id = fields.Int()
+
+
+class PlainDocumentSchema(Schema):
+    """Schema that represents a `Chunk` in a `Document`"""
+
+    chunk_id = fields.Str(required=True)
+    document_id = fields.Str(required=True)
+    content_text = fields.Str()
+    extension = fields.Str()
+    position = fields.Int()
+    lastmodified = fields.Str()
+    published = fields.Str()
+    publisher = fields.Str()
+    source = fields.Str()
+    type_primary = fields.Str()
+    type_secondary = fields.Str()
+    url = fields.Str()

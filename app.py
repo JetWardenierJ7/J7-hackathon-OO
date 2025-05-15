@@ -11,7 +11,10 @@ import models
 import secrets
 from blocklist import BLOCKLIST
 from db import db
+
 from resources.user import blp as UserBlueprint
+from resources.search import blp as SearchBlueprint
+
 from dotenv import load_dotenv
 
 
@@ -105,5 +108,6 @@ def create_app(db_url=None):
         return response
 
     api.register_blueprint(UserBlueprint)
+    api.register_blueprint(SearchBlueprint)
 
     return app

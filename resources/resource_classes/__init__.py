@@ -5,3 +5,4 @@ from .cl_permissions import (
     global_administrator_required,
     is_global_admin,
 )
+from .cl_search import ChunkSearchingClass

@@ -10,6 +10,8 @@ services:
         target: /app
     command: "flask run --host 0.0.0.0"
     env_file: ".env"
+    networks:
+      - opensearch-net
 
   opensearch-node1:
     image: opensearchproject/opensearch:latest # Specifying the latest available image - modify if you want a specific version
