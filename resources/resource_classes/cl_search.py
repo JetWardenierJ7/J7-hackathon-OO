@@ -43,7 +43,7 @@ class ChunkSearchingClass:
         return document_ids
 
     @staticmethod 
-    def get_chunks_for_chat(question):
+    def get_chunks_for_chat(question, document_identifiers):
         """
         Retrieves relevant document chunks for a given opportunity and question.
 
@@ -71,20 +71,28 @@ class ChunkSearchingClass:
 
         # Step 2. Retrieve chunks based on KNN search
         es_query = {
-            "size":10,
-            "query" : {
-                
-                    "knn": {
-                        "content_embedding": {
-                            "vector":question_embedding,
-                            "k": 10
+            "size": 10,
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "terms": {
+                                "document_id.keyword": document_identifiers
+                            }
+                        }
+                    ],
+                    "must": {
+                        "knn": {
+                            "content_embedding": {
+                                "vector": question_embedding,
+                                "k": 100
+                            }
                         }
                     }
                 }
+            }
         }
 
-
-        # print("Es query ; ", es_query)
         # Step 3. Return relevant chunks to base answer on
         response = OPENSEARCH_CONNECTION.search(
             index="es_hackethon",
@@ -103,61 +111,7 @@ class ChunkSearchingClass:
 
         return document_ids
     
-    @staticmethod 
-    def get_chunks_for_chat(question):
-        """
-        Retrieves relevant document chunks for a given opportunity and question.
-
-        This method performs a hybrid search using question embeddings and retrieves
-        chunks of text from documents associated with the specified opportunity. The
-        search leverages Elasticsearch's k-NN capabilities to find the most relevant
-        document segments.
-
-        :param document_ids:
-            A list of document identifiers to search through
-
-        :param question:
-            The question for which relevant document chunks are to be retrieved.
-            An embedding of the question is generated for k-NN search.
-
-        :returns:   A list of text chunks from the documents that are relevant to the given question.
-                    Returns an empty list if no opportunity is found or if no relevant chunks are identified.
-        :rtype: list
-
-        """
-        # Step 1. Generate embedding from question
-        question_embedding = (
-            CL_Mistral_Embeddings().generate_embedding(question)
-        )
-
-        # Step 2. Retrieve chunks based on KNN search
-        es_query = {
-            "size":10,
-            "query" : {
-                
-                    "knn": {
-                        "content_embedding": {
-                            "vector":question_embedding,
-                            "k": 10
-                        }
-                    }
-                }
-        }
-
-
-        # print("Es query ; ", es_query)
-        # Step 3. Return relevant chunks to base answer on
-        response = OPENSEARCH_CONNECTION.search(
-            index="es_hackethon",
-            body=es_query,
-        )
-        chunks = [
-            hit["_source"]["content_text"]
-            for hit in response["hits"]["hits"]
-        ]
-
-        return chunks
-    
+   
     def search_documents(self, config):
         """Retrieves documents based on a search string"""
         
