@@ -6,3 +6,4 @@ from .cl_permissions import (
     is_global_admin,
 )
 from .cl_search import ChunkSearchingClass
+from .cl_mistral_connection import CL_Mistral_Embeddings, CL_Mistral_Completions

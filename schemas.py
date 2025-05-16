@@ -72,3 +72,11 @@ class PlainDocumentSchema(Schema):
     type_primary = fields.Str()
     type_secondary = fields.Str()
     url = fields.Str()
+
+class DefaultInputSchema(Schema): 
+    """Schema for a default input"""
+    input = fields.Str()
+
+class DefaultOutputSchema(Schema): 
+    """Schema for a default input"""
+    output = fields.Str()
