@@ -56,3 +56,4 @@ requests
 python-dotenv
 opensearch-py
 mistralai
+Flask-SSLify

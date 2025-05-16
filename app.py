@@ -11,10 +11,12 @@ import models
 import secrets
 from blocklist import BLOCKLIST
 from db import db
+from flask_sslify import SSLify
 
 from resources.user import blp as UserBlueprint
 from resources.search import blp as SearchBlueprint
 from resources.timeline import blp as TimelineBlueprint
+from resources.chat import blp as ChatBlueprint
 
 from dotenv import load_dotenv
 
@@ -49,7 +51,7 @@ def create_app(db_url=None):
     migrate = Migrate(app, db)
     api = Api(app)
     CORS(app)
-
+    # SSLify(app)
     jwt = JWTManager(app)
 
     @jwt.revoked_token_loader
@@ -111,5 +113,6 @@ def create_app(db_url=None):
     api.register_blueprint(UserBlueprint)
     api.register_blueprint(SearchBlueprint)
     api.register_blueprint(TimelineBlueprint)
+    api.register_blueprint(ChatBlueprint)
 
     return app
