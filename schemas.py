@@ -62,6 +62,7 @@ class PlainDocumentSchema(Schema):
 
     chunk_id = fields.Str(required=True)
     document_id = fields.Str(required=True)
+    document_title = fields.Str()
     content_text = fields.Str()
     extension = fields.Str()
     position = fields.Int()
@@ -73,6 +74,10 @@ class PlainDocumentSchema(Schema):
     type_secondary = fields.Str()
     url = fields.Str()
 
+class SearchDocumentsSchema(Schema): 
+    search_string = fields.Str()
+
+
 class DefaultInputSchema(Schema): 
     """Schema for a default input"""
     input = fields.Str()
@@ -80,3 +85,7 @@ class DefaultInputSchema(Schema):
 class DefaultOutputSchema(Schema): 
     """Schema for a default input"""
     output = fields.Str()
+
+class SearchObjectsSchema(Schema): 
+    date = fields.Str()
+    documents = fields.List(fields.Nested(PlainDocumentSchema()))
