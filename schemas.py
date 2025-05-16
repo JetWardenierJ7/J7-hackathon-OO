@@ -117,6 +117,7 @@ class SearchObjectFilterSchema(Schema):
 class SearchResultsSchema(Schema): 
     timeline = fields.List(fields.Nested(SearchObjectsSchema()))
     filters = fields.Nested(SearchObjectFilterSchema())
+    
 class ChatInputSchema(Schema):
     """Schema for a chat input"""
     question = fields.Str()
