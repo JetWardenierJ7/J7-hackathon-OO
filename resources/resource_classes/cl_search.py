@@ -172,3 +172,46 @@ class ChunkSearchingClass:
             objects_to_return.append(object)
 
         return objects_to_return
+    
+    def update_document(self, index, chunk_id, update_body):
+        """
+        Updates a document in the specified OpenSearch index.
+
+        :param index: The index name where the document resides.
+        :param document_id: The unique identifier of the document to update.
+        :param update_body: The update body, usually a dictionary with a "doc" part.
+
+        :return: The response of the update operation.
+        """
+        try:
+            response = OPENSEARCH_CONNECTION.update(
+                index="es_hackethon",
+                id=chunk_id,    
+                body={"doc": update_body}
+            )
+            return response
+        except Exception as e:
+            print(f"Failed to update document {chunk_id}: {str(e)}")
+            return None
+        
+    def get_by_id(self, chunk_id):
+        """
+        Retrieves a document from the specified OpenSearch index by its unique identifier.
+
+        :param index: The index name where the document resides.
+        :param document_id: The unique identifier of the document to retrieve.
+
+        :return: The document record.
+        """
+        try:
+            response = OPENSEARCH_CONNECTION.search(
+                index="es_hackethon", 
+                body={"query": {"bool": {"must": [{"term": {"chunk_id.keyword": chunk_id}}]}}}
+            )
+            hits = response['hits']['hits']
+            if hits:
+                return hits[0]["_source"]
+            return None
+        except Exception as e:
+            print(f"Failed to retrieve document {chunk_id}: {str(e)}")
+            return None

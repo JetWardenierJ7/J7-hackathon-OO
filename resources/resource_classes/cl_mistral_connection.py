@@ -128,3 +128,34 @@ class CL_Mistral_Completions:
                 )
 
                 return response.choices[0].message.content
+        
+    def generate_summary(self, prompt):
+        """Generates a text completion for a given prompt using the Mistral completions endpoint.
+
+        :param prompt: The user prompt to send to the model
+        :param temperature: Sampling temperature
+        :param max_tokens: Maximum number of tokens to generate
+        :returns: Generated completion text
+        :rtype: str
+        """
+
+        if not isinstance(prompt, str):
+            raise TypeError(f"Expected prompt to be a string, but got: {type(prompt)}")
+
+        try:
+            response = self.client.chat.complete(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=self.temperature
+            )
+        except SDKError as e:
+            print("Error from SDK:", str(e))
+            time.sleep(3)
+            print("Retrying completion...")
+            response = self.client.chat.complete(
+                model=self.model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=self.temperature
+            )
+
+        return response.choices[0].message.content

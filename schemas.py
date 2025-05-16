@@ -73,6 +73,7 @@ class PlainDocumentSchema(Schema):
     type_primary = fields.Str()
     type_secondary = fields.Str()
     url = fields.Str()
+    summary = fields.Str()
 
 class SearchDocumentsSchema(Schema): 
     search_string = fields.Str()
