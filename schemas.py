@@ -74,6 +74,7 @@ class PlainDocumentSchema(Schema):
     type_secondary = fields.Str()
     url = fields.Str()
     summary = fields.Str()
+    agenda_item = fields.Str()
 
 class SearchDocumentsSchema(Schema): 
     search_string = fields.Str()
@@ -81,6 +82,7 @@ class SearchDocumentsSchema(Schema):
     search_until = fields.Str()
     publisher = fields.List(fields.Str())
     type_primary = fields.List(fields.Str())
+    type_secondary = fields.List(fields.Str())
 
 
 class DefaultInputSchema(Schema): 
@@ -104,14 +106,14 @@ class filterTypeSecondarySchema(Schema):
     type_secondary = fields.Str()
     amount_of_docs = fields.Int()
 
-class filterPublishersSchema(Schema): 
+class filterPublisherSchema(Schema): 
     publisher = fields.Str()
     amount_of_docs = fields.Int()
 
 class SearchObjectFilterSchema(Schema): 
     type_primary = fields.List(fields.Nested(filterTypePrimarySchema()))
     type_secondary = fields.List(fields.Nested(filterTypeSecondarySchema()))
-    publishers = fields.List(fields.Nested(filterPublishersSchema()))
+    publisher = fields.List(fields.Nested(filterPublisherSchema()))
 
 
 class SearchResultsSchema(Schema): 
