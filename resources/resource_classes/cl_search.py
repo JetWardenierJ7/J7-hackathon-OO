@@ -71,10 +71,10 @@ class ChunkSearchingClass:
 
         # Step 2. Retrieve chunks based on KNN search
         es_query = {
-            "size": 5,
+            "size": 10,
             "query": {
                 "bool": {
-                    "filter": [
+                    "must": [
                         {
                             "terms": {
                                 "document_id.keyword": document_identifiers

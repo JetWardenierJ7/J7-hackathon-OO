@@ -47,7 +47,7 @@ class OpportunityChatEndpoint(MethodView):
 
         chunks = ChunkSearchingClass.get_chunks_for_chat(chat_data["question"], document_ids)
 
-        prompt = f"Geef antwoord op de gestelde vraag: {chat_data["question"]} op basis van de volgende context: {chunks}. Houd je antwoord kort en bondig, tenzij er anders wordt aangegeven."
+        prompt = f"Geef antwoord op de gestelde vraag: {chat_data["question"]} op basis van de volgende context: {chunks}. Je bent een chat-assistent die statenleden helpt bij het beantwoorden van vragen over documenten. Houd je antwoord kort en bondig, tenzij er anders wordt aangegeven."
         completion = CL_Mistral_Completions().generate_completion(prompt)
 
         return {"output": completion}
