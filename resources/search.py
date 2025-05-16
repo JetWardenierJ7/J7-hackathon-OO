@@ -24,6 +24,16 @@ class SearchDocuments(MethodView):
             "search_string": search_string,
             "embedding": CL_Mistral_Embeddings().generate_embedding(search_string)
         }
-
         objects = ChunkSearchingClass().search_documents(search_config)
+        
+        # Aggregate all document IDs into a single list
+        all_document_ids = [
+            doc['document_id'] 
+            for entry in objects 
+            for doc in entry['documents']
+        ]
+        # Add the list of document IDs to the first entry
+        if objects:
+            objects[0]['document_ids'] = all_document_ids
+
         return objects

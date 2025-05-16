@@ -90,7 +90,9 @@ class DefaultOutputSchema(Schema):
 class SearchObjectsSchema(Schema): 
     date = fields.Str()
     documents = fields.List(fields.Nested(PlainDocumentSchema()))
+    document_ids = fields.List(fields.Str())
 
 class ChatInputSchema(Schema):
     """Schema for a chat input"""
     question = fields.Str()
+    document_ids = fields.List(fields.Str())

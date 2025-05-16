@@ -41,20 +41,13 @@ class OpportunityChatEndpoint(MethodView):
 
         """
         user: UserModel = UserModel.query.get_or_404(get_jwt()["sub"])
+        document_ids = chat_data["document_ids"]
 
-        ## Haal tijdlijn op uit OpenSearch
-        # es_timeline = ChunkSearchingClass.from_opensearch(timeline_id)
         chat_history = []
-        # Get document identifiers for timeline
-        # documents = ChunkSearchingClass.get_documents_for_timeline(timeline_id)
 
-        # Get chunks from documents
-        chunks = ChunkSearchingClass.get_chunks_for_chat(chat_data["question"])
+        chunks = ChunkSearchingClass.get_chunks_for_chat(chat_data["question"], document_ids)
 
-        prompt = f"Geef antwoord op de gestelde vraag: {chat_data["question"]} op basis van de volgende context: {chunks}"
-        completion = CL_Mistral_Completions().chat_response(prompt)
-        # stream = CL_Mistral_Completions("").chat_response(
-        #     chat_history, chat_data["question"], chunks, prompt
-        # )
+        prompt = f"Geef antwoord op de gestelde vraag: {chat_data["question"]} op basis van de volgende context: {chunks}. Houd je antwoord kort en bondig, tenzij er anders wordt aangegeven."
+        completion = CL_Mistral_Completions().generate_completion(prompt)
 
         return {"output": completion}
