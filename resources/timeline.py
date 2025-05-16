@@ -41,7 +41,7 @@ class GenerateDocumentSummaries(MethodView):
         # Process all documents for the chunk_ids provided
         chunk_ids = [doc.get("chunk_id") for result in data for doc in result.get("documents", []) if doc.get("chunk_id")]
         
-        for chunk_id in chunk_ids[:1]:
+        for chunk_id in chunk_ids:
             try:
                 # Get the complete document record from OpenSearch
                 complete_record = chunk_searcher.get_by_id(chunk_id)
