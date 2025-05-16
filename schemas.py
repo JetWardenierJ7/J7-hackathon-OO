@@ -72,7 +72,6 @@ class PlainDocumentSchema(Schema):
     source = fields.Str()
     type_primary = fields.Str()
     type_secondary = fields.Str()
-    summary = fields.Str()
     url = fields.Str()
     summary = fields.Str()
 
