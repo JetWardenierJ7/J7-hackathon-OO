@@ -177,12 +177,12 @@ class ChunkSearchingClass:
             })
 
         #Filter on publisher ("Provincie", "Gemeente", "Tweede Kamer", "Hoogheemraadschap", "Waterschap")
-        publisher_types = config.get("publisher_types", [])
+        publisher = config.get("publisher", [])
 
-        if publisher_types:
+        if publisher:
             filters.append({
                 "terms": {
-                    "publisher.keyword": publisher_types
+                    "publisher.keyword": publisher
                 }
             })
 
@@ -268,7 +268,7 @@ class ChunkSearchingClass:
                     "size": 1000
                 }
             },
-            "publisher_types": {
+            "publisher": {
                 "terms": {
                     "field": "publisher.keyword",
                     "size": 1000
@@ -287,14 +287,33 @@ class ChunkSearchingClass:
 
         query = {
             "bool": {
-                "must": {
-                    "knn": {
-                        "content_embedding": {
-                            "vector": config["embedding"],
-                            "k": 100
+                "should": [
+                    {
+                        "knn": {
+                            "content_embedding": {
+                                "vector": config["embedding"],
+                                "k": 100
+                            }
+                        }
+                    },
+                    {
+                        "bool": {
+                            "must": [
+                                {
+                                    "match": {
+                                        "type_secondary.keyword": "Transcript"
+                                    }
+                                },
+                                {
+                                    "match": {
+                                        "transcription.agenda_item": config["search_string"]
+                                    }
+                                }
+                            ]
                         }
                     }
-                },
+                ],
+                "minimum_should_match": 1,
                 "filter": filters  # dit is [] als er geen datumfilter is
             }
         }
@@ -318,6 +337,8 @@ class ChunkSearchingClass:
             
             for document_bucket in date_bucket['Documents']['buckets']:
                 chunk = document_bucket["Document_Chunks"]["hits"]["hits"][0]
+                if chunk["_source"].get("transcription"): 
+                    chunk["_source"]["agenda_item"] = chunk["_source"]["transcription"]["agenda_item"]
                 chunks_to_return.append(chunk["_source"])
 
             object = {"date": date, "documents": chunks_to_return}
@@ -335,12 +356,12 @@ class ChunkSearchingClass:
                     }
                 )
 
-        publishers = []
-        if len(response["aggregations"]["publisher_types"]["buckets"]) > 0:
-            for aggregation_results in response["aggregations"]["publisher_types"][
+        publisher = []
+        if len(response["aggregations"]["publisher"]["buckets"]) > 0:
+            for aggregation_results in response["aggregations"]["publisher"][
                 "buckets"
             ]:
-                publishers.append(
+                publisher.append(
                     {
                         "publisher": aggregation_results["key"],
                         "amount_of_docs": aggregation_results["doc_count"],
@@ -362,7 +383,7 @@ class ChunkSearchingClass:
         filters = {
             "type_primary": type_primary, 
             "type_secondary": type_secondary, 
-            "publishers": publishers
+            "publisher": publisher
         }
 
         return objects_to_return, filters

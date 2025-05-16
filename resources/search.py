@@ -35,10 +35,13 @@ class SearchDocuments(MethodView):
             search_config["search_until"]=input_data.get("search_until")
 
         if input_data.get("publisher"): 
-            search_config["publisher"]=input_data.get("publisher_types")
+            search_config["publisher"]=input_data.get("publisher")
 
         if input_data.get("type_primary"): 
             search_config["type_primary"]=input_data.get("type_primary")
+
+        if input_data.get("type_secondary"): 
+            search_config["type_secondary"]=input_data.get("type_secondary")
 
         objects, filters = ChunkSearchingClass().search_documents(search_config)
 
