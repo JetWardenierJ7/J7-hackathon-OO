@@ -11,6 +11,7 @@ import models
 import secrets
 from blocklist import BLOCKLIST
 from db import db
+from flask_sslify import SSLify
 
 from resources.user import blp as UserBlueprint
 from resources.search import blp as SearchBlueprint
@@ -50,7 +51,7 @@ def create_app(db_url=None):
     migrate = Migrate(app, db)
     api = Api(app)
     CORS(app)
-
+    SSLify(app)
     jwt = JWTManager(app)
 
     @jwt.revoked_token_loader
