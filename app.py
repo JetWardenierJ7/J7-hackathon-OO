@@ -51,7 +51,7 @@ def create_app(db_url=None):
     migrate = Migrate(app, db)
     api = Api(app)
     CORS(app)
-    SSLify(app)
+    # SSLify(app)
     jwt = JWTManager(app)
 
     @jwt.revoked_token_loader
