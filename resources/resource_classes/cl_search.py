@@ -43,7 +43,7 @@ class ChunkSearchingClass:
         return document_ids
 
     @staticmethod 
-    def get_chunks_for_chat(question):
+    def get_chunks_for_chat(question, document_identifiers):
         """
         Retrieves relevant document chunks for a given opportunity and question.
 
@@ -71,20 +71,28 @@ class ChunkSearchingClass:
 
         # Step 2. Retrieve chunks based on KNN search
         es_query = {
-            "size":10,
-            "query" : {
-                
-                    "knn": {
-                        "content_embedding": {
-                            "vector":question_embedding,
-                            "k": 10
+            "size": 10,
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "terms": {
+                                "document_id.keyword": document_identifiers
+                            }
+                        }
+                    ],
+                    "must": {
+                        "knn": {
+                            "content_embedding": {
+                                "vector": question_embedding,
+                                "k": 100
+                            }
                         }
                     }
                 }
+            }
         }
 
-
-        # print("Es query ; ", es_query)
         # Step 3. Return relevant chunks to base answer on
         response = OPENSEARCH_CONNECTION.search(
             index="es_hackethon",

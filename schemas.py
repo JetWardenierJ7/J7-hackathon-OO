@@ -72,7 +72,6 @@ class PlainDocumentSchema(Schema):
     source = fields.Str()
     type_primary = fields.Str()
     type_secondary = fields.Str()
-    summary = fields.Str()
     url = fields.Str()
     summary = fields.Str()
 
@@ -95,6 +94,7 @@ class DefaultOutputSchema(Schema):
 class SearchObjectsSchema(Schema): 
     date = fields.Str()
     documents = fields.List(fields.Nested(PlainDocumentSchema()))
+    document_ids = fields.List(fields.Str())
 
 class filterTypePrimarySchema(Schema): 
     type_primary = fields.Str()
@@ -120,3 +120,5 @@ class SearchResultsSchema(Schema):
 class ChatInputSchema(Schema):
     """Schema for a chat input"""
     question = fields.Str()
+
+    document_ids = fields.List(fields.Str())
