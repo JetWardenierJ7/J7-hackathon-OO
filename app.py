@@ -14,6 +14,7 @@ from db import db
 
 from resources.user import blp as UserBlueprint
 from resources.search import blp as SearchBlueprint
+from resources.timeline import blp as TimelineBlueprint
 
 from dotenv import load_dotenv
 
@@ -109,5 +110,6 @@ def create_app(db_url=None):
 
     api.register_blueprint(UserBlueprint)
     api.register_blueprint(SearchBlueprint)
+    api.register_blueprint(TimelineBlueprint)
 
     return app
