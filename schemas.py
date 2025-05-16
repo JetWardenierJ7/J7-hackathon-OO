@@ -72,10 +72,15 @@ class PlainDocumentSchema(Schema):
     source = fields.Str()
     type_primary = fields.Str()
     type_secondary = fields.Str()
+    summary = fields.Str()
     url = fields.Str()
 
 class SearchDocumentsSchema(Schema): 
     search_string = fields.Str()
+    search_from = fields.Str()
+    search_until = fields.Str()
+    publisher = fields.List(fields.Str())
+    type_primary = fields.List(fields.Str())
 
 
 class DefaultInputSchema(Schema): 
@@ -89,3 +94,25 @@ class DefaultOutputSchema(Schema):
 class SearchObjectsSchema(Schema): 
     date = fields.Str()
     documents = fields.List(fields.Nested(PlainDocumentSchema()))
+
+class filterTypePrimarySchema(Schema): 
+    type_primary = fields.Str()
+    amount_of_docs = fields.Int()
+
+class filterTypeSecondarySchema(Schema): 
+    type_secondary = fields.Str()
+    amount_of_docs = fields.Int()
+
+class filterPublishersSchema(Schema): 
+    publisher = fields.Str()
+    amount_of_docs = fields.Int()
+
+class SearchObjectFilterSchema(Schema): 
+    type_primary = fields.List(fields.Nested(filterTypePrimarySchema()))
+    type_secondary = fields.List(fields.Nested(filterTypeSecondarySchema()))
+    publishers = fields.List(fields.Nested(filterPublishersSchema()))
+
+
+class SearchResultsSchema(Schema): 
+    timeline = fields.List(fields.Nested(SearchObjectsSchema()))
+    filters = fields.Nested(SearchObjectFilterSchema())
