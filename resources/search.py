@@ -58,19 +58,54 @@ class SearchDocuments(MethodView):
         # Generate summaries if the search string is not "RijnlandRoute"
         if search_string != "RijnlandRoute":
             summaries = []
-            for entry in objects[:1]:
+            for entry in objects[:3]:
                 doc_count = 0
                 for doc in entry['documents']:
+                    document_title = doc['document_title']
+                    content_text = doc['content_text']
                     if doc_count >= 3:
                         break
-                    content_text = doc['content_text']
+                   
                     print("Content text: ", content_text)
                     print("Docid: ", doc['document_id'])
-                    prompt = f"Geef een samenvatting van de volgende tekst: {content_text} over het thema {search_string}. Beschrijf kort wat de kern van de tekst is en wees concreet. Verzin geen zaken erbij. Begin je tekst NIET met 'De tekst beschrijft' of 'de inhoud van de tekst' zorg dat het een vloeiende tekst is. Deze tekst is bedoeld voor Statenleden, dus bepaald jargon over overheidstermologie mag gebruikt worden. Beperk je tot maximaal 4 a 5 zinnen. Vermijd vage en onnodige zinnen. Benoem alleen relevante zaken, als je echt niks inhoudelijk kan vinden, geef dat dan in één zin aan en omschrijf gewoon het onderwerp RijnlandRoute."
+                    summary_prompt = f"Geef een samenvatting van de volgende tekst: {content_text} over het thema {search_string}. Beschrijf kort wat de kern van de tekst is en wees concreet. Verzin geen zaken erbij. Begin je tekst NIET met 'De tekst beschrijft' of 'de inhoud van de tekst' zorg dat het een vloeiende tekst is. Deze tekst is bedoeld voor Statenleden, dus bepaald jargon over overheidstermologie mag gebruikt worden. Beperk je tot maximaal 4 a 5 zinnen. Vermijd vage en onnodige zinnen. Benoem alleen relevante zaken, als je echt niks inhoudelijk kan vinden, geef dat dan in één zin aan en omschrijf gewoon het onderwerp RijnlandRoute."
+                  
+                    summary = CL_Mistral_Completions().generate_summary(summary_prompt)
+
+                    label_prompt = f"""Je bent een expert op het gebied van overheidsdocumentatie. Je taak is om het type document te bepalen aan de hand van een titel of korte beschrijving. '
+                    Geef ALLEEN de naam van het label terug, zonder onderbouwing. 
                     
-                    summary = CL_Mistral_Completions().generate_summary(prompt)
+                    De titel van het document is {document_title}.
+                    De samenvatting is: {summary}.
+                    en de content van een chunk van dit document is: {content_text}.
+
+                    Kies uit de volgende categorieën:
+
+                    Wetsvoorstel
+
+                    Amendement
+
+                    Motie
+
+                    Beleidsnota
+
+                    Kamerbrief/GS-brief
+
+                    Brief van inwoner
+
+                    Verslag
+
+                    Rechterlijke uitspraak
+
+                    Rapport
+
+                    Overig
+                    
+                    Nieuwsbericht"""
+                    label = CL_Mistral_Completions().categorize_label(label_prompt)
                     print("Generating summary for document: ", doc)
                     doc['summary'] = summary
+                    doc['label'] = label
                     doc_count += 1
 
 

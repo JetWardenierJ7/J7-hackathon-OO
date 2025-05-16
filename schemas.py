@@ -75,6 +75,7 @@ class PlainDocumentSchema(Schema):
     url = fields.Str()
     summary = fields.Str()
     agenda_item = fields.Str()
+    label = fields.Str()
 
 class SearchDocumentsSchema(Schema): 
     search_string = fields.Str()
@@ -119,7 +120,7 @@ class SearchObjectFilterSchema(Schema):
 class SearchResultsSchema(Schema): 
     timeline = fields.List(fields.Nested(SearchObjectsSchema()))
     filters = fields.Nested(SearchObjectFilterSchema())
-    
+
 class ChatInputSchema(Schema):
     """Schema for a chat input"""
     question = fields.Str()

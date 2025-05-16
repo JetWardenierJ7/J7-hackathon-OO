@@ -67,3 +67,80 @@ class GenerateDocumentSummaries(MethodView):
                 print(f"Failed to update document {chunk_id}: {str(e)}")
 
         return {"results": [{"chunk_ids_processed": chunk_ids}]}
+    
+
+@blp.route("/generate_document_labels")
+class GenerateDocumentSummaries(MethodView):
+    """Generates summaries and indexes them"""
+
+    @jwt_required()
+    @blp.response(200)
+    def post(self):
+        payload = request.get_json()  # Ensure we get JSON data from the request
+        completion_service = CL_Mistral_Completions()
+        chunk_searcher = ChunkSearchingClass()
+        data = payload.get("data", [])
+
+        # Process all documents for the chunk_ids provided
+        chunk_ids = [doc.get("chunk_id") for result in data for doc in result.get("documents", []) if doc.get("chunk_id")]
+        
+        for chunk_id in chunk_ids:
+            try:
+                # Get the complete document record from OpenSearch
+                complete_record = chunk_searcher.get_by_id(chunk_id)
+                print("Complete record: ", complete_record)
+
+                content = complete_record.get("content_text", "").strip()
+                summary = complete_record.get("summary", "")
+                document_title = complete_record.get("document_title", "")
+                type_primary = complete_record.get("type_primary", "")
+                type_secondary = complete_record.get("type_secondary", "")
+
+                # Ensure there is content to summarize
+                if content:
+                    # Create a summary for the document
+                    prompt = f"""Je bent een expert op het gebied van overheidsdocumentatie. Je taak is om het type document te bepalen aan de hand van een titel of korte beschrijving. '
+                    Geef ALLEEN de naam van het label terug, zonder onderbouwing. 
+                    
+                    De titel van het document is {document_title}.
+                    De samenvatting is: {summary}.
+                    en de content van een chunk van dit document is: {content}.
+
+                    Kies uit de volgende categorieën:
+
+                    Wetsvoorstel
+
+                    Amendement
+
+                    Motie
+
+                    Beleidsnota
+
+                    Kamerbrief/GS-brief
+
+                    Brief van inwoner
+
+                    Verslag
+
+                    Rechterlijke uitspraak
+
+                    Rapport
+
+                    Overig
+                    
+                    Nieuwsbericht"""
+                    
+                    label = completion_service.categorize_label(prompt)
+         
+                    # Update the document with the new summary
+                    new_record = complete_record
+                    new_record["label"] = label
+                    print("New record: ", new_record)
+                    
+                    # Insert updated document back into OpenSearch
+                    chunk_searcher.update_document(index="es_hackathon", chunk_id=chunk_id, update_body=new_record)
+            
+            except Exception as e:
+                print(f"Failed to update document {chunk_id}: {str(e)}")
+
+        return {"results": [{"chunk_ids_processed": chunk_ids}]}
