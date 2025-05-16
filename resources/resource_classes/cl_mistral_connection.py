@@ -6,14 +6,13 @@ load_dotenv()
 
 MISTRAL_API_KEY = os.environ["MISTRAL_API_KEY"]
 
-class CL_Mistral_Connection:
+class CL_Mistral_Embeddings:
     """This class is responsible for generating embeddings using the Mistral API"""
 
     def __init__(self, model="mistral-embed"):
         """This is constructor that initializes a CL_Openai_Embeddings object"""
 
-        api_key = MISTRAL_API_KEY
-        self.client = Mistral(api_key=api_key)
+        self.client = Mistral(api_key=MISTRAL_API_KEY)
         self.model = model
         
 
@@ -47,8 +46,18 @@ class CL_Mistral_Connection:
             )
         
         return response.data[0].embedding
-    
-    def generate_completion(self, prompt, temperature=0.7, max_tokens=256, model="ministral-3b-latest"):
+
+class CL_Mistral_Completions:
+    """This class is responsible for generating completions using the Mistral API"""
+
+    def __init__(self, model="ministral-3b-latest", temperature=0.7):
+        """This is constructor that initializes a CL_Openai_Embeddings object"""
+
+        self.client = Mistral(api_key=MISTRAL_API_KEY)
+        self.model = model
+        self.temperature = temperature
+            
+    def generate_completion(self, prompt):
         """Generates a text completion for a given prompt using the Mistral completions endpoint.
 
         :param prompt: The user prompt to send to the model
@@ -63,20 +72,18 @@ class CL_Mistral_Connection:
 
         try:
             response = self.client.chat.complete(
-                model=model,
+                model=self.model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens,
+                temperature=self.temperature
             )
         except SDKError as e:
             print("Error from SDK:", str(e))
             time.sleep(3)
             print("Retrying completion...")
             response = self.client.chat.complete(
-                model=model,
+                model=self.model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=temperature,
-                max_tokens=max_tokens,
+                temperature=self.temperature
             )
 
         return response.choices[0].message.content

@@ -4,7 +4,7 @@ from flask_smorest import Blueprint, abort
 from flask_jwt_extended import jwt_required
 from flask.views import MethodView
 from schemas import PlainDocumentSchema, DefaultInputSchema, DefaultOutputSchema
-from .resource_classes import ChunkSearchingClass, CL_Mistral_Connection
+from .resource_classes import ChunkSearchingClass, CL_Mistral_Embeddings, CL_Mistral_Completions
 
 blp = Blueprint("Timeline", "timelineh", description="Operations on the timeline page")
 
@@ -20,6 +20,6 @@ class Completion(MethodView):
         """Answers a prompt"""
 
         prompt = input_data["input"]
-        completion = CL_Mistral_Connection().generate_completion(prompt)
+        completion = CL_Mistral_Completions().generate_completion(prompt)
 
         return {"output": completion}
