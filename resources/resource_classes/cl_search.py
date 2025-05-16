@@ -105,12 +105,197 @@ class ChunkSearchingClass:
 
         return chunks
     
+    def get_documents_for_timeline(self):
+        """Retrieves all the related document identifiers"""
+        document_ids = [self.document_identifier]
+
+        return document_ids
+    
+    @staticmethod 
+    def get_chunks_for_chat(question):
+        """
+        Retrieves relevant document chunks for a given opportunity and question.
+
+        This method performs a hybrid search using question embeddings and retrieves
+        chunks of text from documents associated with the specified opportunity. The
+        search leverages Elasticsearch's k-NN capabilities to find the most relevant
+        document segments.
+
+        :param document_ids:
+            A list of document identifiers to search through
+
+        :param question:
+            The question for which relevant document chunks are to be retrieved.
+            An embedding of the question is generated for k-NN search.
+
+        :returns:   A list of text chunks from the documents that are relevant to the given question.
+                    Returns an empty list if no opportunity is found or if no relevant chunks are identified.
+        :rtype: list
+
+        """
+        # Step 1. Generate embedding from question
+        question_embedding = (
+            CL_Mistral_Embeddings().generate_embedding(question)
+        )
+
+        # Step 2. Retrieve chunks based on KNN search
+        es_query = {
+            "size":10,
+            "query" : {
+                
+                    "knn": {
+                        "content_embedding": {
+                            "vector":question_embedding,
+                            "k": 10
+                        }
+                    }
+                }
+        }
+
+
+        # print("Es query ; ", es_query)
+        # Step 3. Return relevant chunks to base answer on
+        response = OPENSEARCH_CONNECTION.search(
+            index="es_hackethon",
+            body=es_query,
+        )
+        chunks = [
+            hit["_source"]["content_text"]
+            for hit in response["hits"]["hits"]
+        ]
+
+        return chunks
+    
     def search_documents(self, config):
         """Retrieves documents based on a search string"""
+        
 
-        body = {
-                "size": 0, #size op 0, omdat je results in een aggregatie terugkomen
-                "query": {
+        #Filter on date
+        range_filter = {}
+        if "search_from" in config:
+            range_filter["gte"] = config["search_from"]
+        if "search_until" in config:
+            range_filter["lt"] = config["search_until"]
+        filters = []
+        if range_filter:
+            filters.append({
+                "range": {
+                    "published": range_filter
+                }
+            })
+
+        #Filter on publisher ("Provincie", "Gemeente", "Tweede Kamer", "Hoogheemraadschap", "Waterschap")
+        publisher_types = config.get("publisher_types", [])
+
+        if publisher_types:
+            filters.append({
+                "terms": {
+                    "publisher.keyword": publisher_types
+                }
+            })
+
+            # filters.append({
+            #     "bool": {
+            #         "should": [
+            #             {"prefix": {"publisher.keyword": f"{t} "}} for t in publisher_types
+            #         ],
+            #         "minimum_should_match": 1
+            #     }
+            # })
+
+        #Filter on type primary ("Provinciaal verslag", "Vergadering", "Raadsverslag", "Kamerstuk", "waterschap vergadering", "Bijlage", "Kamervragen (Aanhangsel)")
+        type_primary = config.get("type_primary", [])
+
+        if type_primary:
+            filters.append({
+                "terms": {
+                    "type_primary.keyword": type_primary
+                }
+            })
+
+        #Filter on type primary ("Provinciaal verslag", "Vergadering", "Raadsverslag", "Kamerstuk", "waterschap vergadering", "Bijlage", "Kamervragen (Aanhangsel)")
+        type_secondary = config.get("type_secondary", [])
+
+        if type_secondary:
+            filters.append({
+                "terms": {
+                    "type_secondary.keyword": type_secondary
+                }
+            })
+
+        aggs = {
+            "Publicatiedatum": {
+                "date_histogram": {
+                    "field": "published",
+                    "calendar_interval": "day",
+                    "format": "yyyy-MM-dd",
+                    "order": {
+                        "_key": "desc"
+                    },
+                    "min_doc_count": 1
+                },
+                "aggs": {
+                    "Documents": {
+                        "terms": {
+                            "field": "document_id.keyword",
+                            "size": 1000
+                        },
+                        "aggs": {
+                            "Document_Chunks": {
+                                "top_hits": {
+                                    "size": 1,
+                                    "sort": [
+                                        {
+                                            "_score": {
+                                                "order": "desc"
+                                            }
+                                        }
+                                    ],
+                                    "_source": {
+                                        "excludes": [
+                                            "frontend.group*",
+                                            "content_embedding"
+                                        ]
+                                    }
+                                }
+                            },
+                            "max_score": {
+                                "max": {
+                                    "script": {
+                                        "source": "_score"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "type_primary": {
+                "terms": {
+                    "field": "type_primary.keyword",
+                    "size": 1000
+                }
+            },
+            "publisher_types": {
+                "terms": {
+                    "field": "publisher.keyword",
+                    "size": 1000
+                }
+            },
+            "type_secondary": {
+                "terms": {
+                    "field": "type_secondary.keyword",
+                    "size": 1000
+                }
+            }
+        }
+
+
+
+
+        query = {
+            "bool": {
+                "must": {
                     "knn": {
                         "content_embedding": {
                             "vector": config["embedding"],
@@ -118,51 +303,18 @@ class ChunkSearchingClass:
                         }
                     }
                 },
-                "aggs": {
-                    "Publicatiedatum": {
-                        "terms": {
-                            "field": "published",
-                            "format":"yyyy-MM-dd",
-                            "size":10000      
-                        },  
-                        "aggs": {
-                            "Documents": {
-                                "terms": {
-                                    "field": "document_id.keyword",
-                                    "size": 1000                       
-                                },
-                                "aggs": { #//met de code hieronder krijg je de top 5 chunks per document, gesorteerd op de score van je query. Let op: je krijgt per chunk alle informatie. Voor je frontend hoef je dus alleen het eerste deel te pakken
-                                    "Document_Chunks": {
-                                        "top_hits": {
-                                            "size": 3, #//verhoog als je meer chunks wil zien binnen het document
-                                            "sort": [
-                                                {
-                                                    "_score": {
-                                                        "order": "desc"
-                                                    }
-                                                }
-                                            ],
-                                            "_source": {
-                                                "excludes": [
-                                                    "frontend.group*",
-                                                    "content_embedding" #//embedding heb ik uit de respons gehaald. deze weghalen als je die wel wil zien
-                                                ]
-                                            }
-                                        }
-                                    },
-                                    "max_score": {
-                                        "max": {
-                                            "script": {
-                                                "source": "_score"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                "filter": filters  # dit is [] als er geen datumfilter is
             }
+        }
+
+
+        body = {
+            "size": 0,
+            "query": query,
+            "aggs": aggs
+        }
+
+
 
         
         response = OPENSEARCH_CONNECTION.search(body=body, index="es_hackethon")
@@ -179,8 +331,50 @@ class ChunkSearchingClass:
             object = {"date": date, "documents": chunks_to_return}
             objects_to_return.append(object)
 
-        return objects_to_return
-    
+        type_primary = []
+        if len(response["aggregations"]["type_primary"]["buckets"]) > 0:
+            for aggregation_results in response["aggregations"]["type_primary"][
+                "buckets"
+            ]:
+                type_primary.append(
+                    {
+                        "type_primary": aggregation_results["key"],
+                        "amount_of_docs": aggregation_results["doc_count"],
+                    }
+                )
+
+        publishers = []
+        if len(response["aggregations"]["publisher_types"]["buckets"]) > 0:
+            for aggregation_results in response["aggregations"]["publisher_types"][
+                "buckets"
+            ]:
+                publishers.append(
+                    {
+                        "publisher": aggregation_results["key"],
+                        "amount_of_docs": aggregation_results["doc_count"],
+                    }
+                )
+
+        type_secondary = []
+        if len(response["aggregations"]["type_secondary"]["buckets"]) > 0:
+            for aggregation_results in response["aggregations"]["type_secondary"][
+                "buckets"
+            ]:
+                type_secondary.append(
+                    {
+                        "type_secondary": aggregation_results["key"],
+                        "amount_of_docs": aggregation_results["doc_count"],
+                    }
+                )
+
+        filters = {
+            "type_primary": type_primary, 
+            "type_secondary": type_secondary, 
+            "publishers": publishers
+        }
+
+        return objects_to_return, filters
+
     def update_document(self, index, chunk_id, update_body):
         """
         Updates a document in the specified OpenSearch index.
