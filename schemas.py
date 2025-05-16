@@ -80,3 +80,7 @@ class DefaultInputSchema(Schema):
 class DefaultOutputSchema(Schema): 
     """Schema for a default input"""
     output = fields.Str()
+
+class ChatInputSchema(Schema):
+    """Schema for a chat input"""
+    question = fields.Str()
