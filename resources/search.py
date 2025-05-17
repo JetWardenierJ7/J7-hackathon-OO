@@ -21,9 +21,7 @@ class SearchDocuments(MethodView):
     def post(self, input_data):
         """Gets the first 10 documents it can find in the OpenSearch index"""
         search_string = input_data["search_string"]
-
-        
-
+    
         search_config = {
             "search_string": search_string,
             "embedding": CL_Mistral_Embeddings().generate_embedding(search_string)
@@ -44,7 +42,7 @@ class SearchDocuments(MethodView):
             search_config["type_secondary"]=input_data.get("type_secondary")
 
         objects, filters = ChunkSearchingClass().search_documents(search_config)
-        print("Objects: ", objects)
+        
         # Aggregate all document IDs into a single list
         all_document_ids = [
             doc['document_id'] 
@@ -56,7 +54,7 @@ class SearchDocuments(MethodView):
             objects[0]['document_ids'] = all_document_ids
 
         # Generate summaries if the search string is not "RijnlandRoute"
-        if search_string != "RijnlandRoute":
+        if search_string != "Rijnlandroute" or "RijnlandRoute":
             summaries = []
             for entry in objects[:3]:
                 doc_count = 0
@@ -66,8 +64,8 @@ class SearchDocuments(MethodView):
                     if doc_count >= 3:
                         break
                    
-                    print("Content text: ", content_text)
-                    print("Docid: ", doc['document_id'])
+                    # print("Content text: ", content_text)
+                    # print("Docid: ", doc['document_id'])
                     summary_prompt = f"Geef een samenvatting van de volgende tekst: {content_text} over het thema {search_string}. Beschrijf kort wat de kern van de tekst is en wees concreet. Verzin geen zaken erbij. Begin je tekst NIET met 'De tekst beschrijft' of 'de inhoud van de tekst' zorg dat het een vloeiende tekst is. Deze tekst is bedoeld voor Statenleden, dus bepaald jargon over overheidstermologie mag gebruikt worden. Beperk je tot maximaal 4 a 5 zinnen. Vermijd vage en onnodige zinnen. Benoem alleen relevante zaken, als je echt niks inhoudelijk kan vinden, geef dat dan in één zin aan en omschrijf gewoon het onderwerp RijnlandRoute."
                   
                     summary = CL_Mistral_Completions().generate_summary(summary_prompt)
@@ -79,29 +77,18 @@ class SearchDocuments(MethodView):
                     De samenvatting is: {summary}.
                     en de content van een chunk van dit document is: {content_text}.
 
-                    Kies uit de volgende categorieën:
+                    Het is VERPLICHT om enkel één van deze categorieën te kiezen. Een andere categorie is NIET toegestaan.Geef ALLEEN de naam van de categorie terug:
 
-                    Wetsvoorstel
-
-                    Amendement
 
                     Motie
-
-                    Beleidsnota
-
-                    Kamerbrief/GS-brief
-
-                    Brief van inwoner
-
-                    Verslag
-
-                    Rechterlijke uitspraak
-
-                    Rapport
-
+                    Amendement 
+                    Brief van derden 
+                    Brief van Gedeputeerde Staten (GS) 
+                    Verslag 
+                    Statenvoorstel 
+                    Nota
                     Overig
-                    
-                    Nieuwsbericht"""
+                    """
                     label = CL_Mistral_Completions().categorize_label(label_prompt)
                     print("Generating summary for document: ", doc)
                     doc['summary'] = summary
