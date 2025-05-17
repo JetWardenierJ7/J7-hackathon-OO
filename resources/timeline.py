@@ -78,6 +78,7 @@ class GenerateDocumentSummaries(MethodView):
                     if content:
                         # Create a summary for the document
                         prompt = f"Geef een samenvatting van de volgende tekst over het thema RijnlandRoute. Beschrijf kort wat de kern van de tekst is en wees concreet. Verzin geen zaken erbij. Begin je tekst NIET met 'De tekst beschrijft' of 'de inhoud van de tekst', ga meteen in op de inhoud en zorg dat het een vloeiende tekst is. Deze tekst is bedoeld voor Statenleden, dus bepaald jargon over overheidstermologie mag gebruikt worden. Beperk je tot maximaal 4 zinnen. Vermijd vage en onnodige zinnen.\n\n"
+                        prompt += f"Het is NIET nodig om uit te leggen wat de RijnlandRoute is. Beschrijf alleen wat er in de tekst staat."
                         prompt += f"Het document {document_title}, de inhoud van het document is: {content}.\n\n"
                         prompt += f"Houd de tekst vloeiend, gebruik geen onnodige leestekens."
                         summary = completion_service.generate_summary(prompt)
