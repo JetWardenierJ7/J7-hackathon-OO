@@ -66,7 +66,7 @@ class SearchDocuments(MethodView):
                    
                     # print("Content text: ", content_text)
                     # print("Docid: ", doc['document_id'])
-                    summary_prompt = f"Geef een samenvatting van de volgende tekst: {content_text} over het thema {search_string}. Beschrijf kort wat de kern van de tekst is en wees concreet. Verzin geen zaken erbij. Begin je tekst NIET met 'De tekst beschrijft' of 'de inhoud van de tekst' zorg dat het een vloeiende tekst is. Deze tekst is bedoeld voor Statenleden, dus bepaald jargon over overheidstermologie mag gebruikt worden. Beperk je tot maximaal 4 a 5 zinnen. Vermijd vage en onnodige zinnen. Benoem alleen relevante zaken, als je echt niks inhoudelijk kan vinden, geef dat dan in één zin aan en omschrijf gewoon het onderwerp RijnlandRoute."
+                    summary_prompt = f"Geef een samenvatting van de volgende tekst: {content_text} over het thema {search_string}. Beschrijf kort wat de kern van de tekst is en wees concreet."
                   
                     summary = CL_Mistral_Completions().generate_summary(summary_prompt)
 
