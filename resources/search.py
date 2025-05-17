@@ -54,7 +54,7 @@ class SearchDocuments(MethodView):
             objects[0]['document_ids'] = all_document_ids
 
         # Generate summaries if the search string is not "RijnlandRoute"
-        if search_string != "Rijnlandroute" or "RijnlandRoute":
+        if search_string.lower() != "rijnlandroute":
             summaries = []
             for entry in objects[:3]:
                 doc_count = 0
