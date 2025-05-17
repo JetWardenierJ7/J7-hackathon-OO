@@ -122,7 +122,5 @@ class SearchResultsSchema(Schema):
     filters = fields.Nested(SearchObjectFilterSchema())
 
 class ChatInputSchema(Schema):
-    """Schema for a chat input"""
     question = fields.Str()
-
     document_ids = fields.List(fields.Str())

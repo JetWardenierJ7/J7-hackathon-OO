@@ -189,7 +189,7 @@ class ChunkSearchingClass:
                         "aggs": {
                             "Document_Chunks": {
                                 "top_hits": {
-                                    "size": 1,
+                                    "size": 3,
                                     "sort": [
                                         {
                                             "_score": {
@@ -290,14 +290,30 @@ class ChunkSearchingClass:
             date = date_bucket['key_as_string']
             
             for document_bucket in date_bucket['Documents']['buckets']:
-                chunk = document_bucket["Document_Chunks"]["hits"]["hits"][0]
-                if chunk["_source"].get("transcription"): 
-                    chunk["_source"]["agenda_item"] = chunk["_source"]["transcription"]["agenda_item"]
-                chunks_to_return.append(chunk["_source"])
+                chunks = document_bucket["Document_Chunks"]["hits"]["hits"]
+                concatenated_content = ''
+                source_data = {}
+
+                # Loop over all chunks
+                for chunk in chunks:
+                    if "content_text" in chunk["_source"]:
+                        concatenated_content += chunk["_source"]["content_text"]
+                    
+                    # Update source_data with each chunk's _source that contains a chunk_id
+                    if "chunk_id" in chunk["_source"]:
+                        source_data = chunk["_source"]
+
+                # Ensure the document has the necessary fields
+                if "chunk_id" in source_data:
+                    source_data["content_text"] = concatenated_content
+                    chunks_to_return.append(source_data)
+
+                # print("Chunks to return: ", chunks_to_return)
 
             object = {"date": date, "documents": chunks_to_return}
             objects_to_return.append(object)
 
+    
         type_primary = []
         if len(response["aggregations"]["type_primary"]["buckets"]) > 0:
             for aggregation_results in response["aggregations"]["type_primary"][
