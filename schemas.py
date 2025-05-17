@@ -76,6 +76,7 @@ class PlainDocumentSchema(Schema):
     summary = fields.Str()
     agenda_item = fields.Str()
     label = fields.Str()
+    document_url = fields.Str()
 
 class SearchDocumentsSchema(Schema): 
     search_string = fields.Str()
